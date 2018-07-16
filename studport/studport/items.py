@@ -11,4 +11,6 @@ import scrapy
 class StudportItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    address = scrapy.Field()
+    program = scrapy.Field()
+    
