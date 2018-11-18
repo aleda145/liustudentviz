@@ -38,12 +38,43 @@ class Studport_spider(scrapy.Spider):
                            callback=self.parse_search_page)
 
 
+    def get_details(self,response):
+        #student = StudPortItem()
+        print('entered detail')
+        resultarea = response.xpath('//*[@id="resultarea"]')
+        name = resultarea.xpath('//h2/text()').extract()
+        name = name[0]
+        program = resultarea.xpath('tr[td[i[contains(text(), "Programregistreringar")]]]/td[2]/text()').extract()
+        courses = resultarea.xpath('tr[td[i[contains(text(), "Kursregistreringar")]]]/td[2]/text()').extract()
+        address = resultarea.xpath('tr[td[i[contains(text(), "Adress")]]]/td[2]/text()').extract()
+
+        if not program:
+        #    print('no detail')
+            program = 'Ingen Uppgift'
+        else:
+            program=program[0]
+
+
+        yield {
+        'name' : name,
+        'program' :program,
+        'courses' : courses,
+        'address' : address,
+        }
+
+
+
     def parse_search_page (self,response):
         print('new page')
         resulttable = response.xpath('//*[@id="resulttable"]')
         #print(resulttable.extract())
         student_list=[]
-        print(resulttable.xpath('tr/td/a[contains(text(), "Visa detaljer")]/@href').extract())
+        detail_list = (resulttable.xpath('tr/td/a[contains(text(), "Visa detaljer")]/@href').extract())
+        for detail in detail_list:
+            print(detail)
+            print('entering detail')
+            yield response.follow(detail, self.get_details)
+
         next_page = response.xpath('//*[@id="resultarea"]/p/a[contains(text(), "sta 10")]/@href').extract_first()
         print(next_page)
         if next_page:
