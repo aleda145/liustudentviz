@@ -4,12 +4,13 @@ from scrapy.http import FormRequest
 from scrapy.http import Request
 from studport.items import StudportItem
 import re
-
+import time
 class Studport_spider(scrapy.Spider):
     name = "studport"
-    with open('./zip_codes.txt') as f:
-        content=f.readlines()
-    zip_codes = [x.strip() for x in content]
+    # with open('./zip_codes.txt') as f:
+    #     content=f.readlines()
+    # zip_codes = [x.strip() for x in content]
+    mail_list=[]
     def start_requests(self):
         urls=[
         'https://www3.student.liu.se/portal/eng'
@@ -31,28 +32,34 @@ class Studport_spider(scrapy.Spider):
             return
 
         else:
-            new_url='https://www3.student.liu.se/portal/search?searchtext=%22'+'582 14'+'%22&search=Search'
-            print(new_url)
-            #print(new_url)
-            yield Request(url=new_url,
-                           callback=self.parse_search_page)
+            with open('./zip_codes.txt') as f:
+                for url in f.readlines():
+                    yield scrapy.Request(url,
+                        callback=self.parse_search_page)
+            # yield scrapy.Request('https://www3.student.liu.se/portal/search?searchtext=%22584 32%22&search=Search',
+            #     callback=self.parse_search_page, priority=1)
+
+            # new_url='https://www3.student.liu.se/portal/search?searchtext=%22'+'581 28'+'%22&search=Search'
+            # print(new_url)
+            # #print(new_url)
+            # yield Request(url=new_url,
+            #                callback=self.parse_search_page)
 
 
     def get_details(self,response):
         #student = StudPortItem()
-        print('entered detail')
+        #print('entered detail')
         resultarea = response.xpath('//*[@id="resultarea"]')
         name = resultarea.xpath('//h2/text()').extract()
-        name = name[0]
         program = resultarea.xpath('tr[td[i[contains(text(), "Programregistreringar")]]]/td[2]/text()').extract()
         courses = resultarea.xpath('tr[td[i[contains(text(), "Kursregistreringar")]]]/td[2]/text()').extract()
         address = resultarea.xpath('tr[td[i[contains(text(), "Adress")]]]/td[2]/text()').extract()
 
-        if not program:
-        #    print('no detail')
-            program = 'Ingen Uppgift'
-        else:
-            program=program[0]
+        # if not program:
+        # #    print('no detail')
+        #     program = 'Ingen Uppgift'
+        # else:
+        #     program=program[0]
 
 
         yield {
@@ -65,24 +72,30 @@ class Studport_spider(scrapy.Spider):
 
 
     def parse_search_page (self,response):
-        print('new page')
+        #print('new page')
         resulttable = response.xpath('//*[@id="resulttable"]')
         #print(resulttable.extract())
         student_list=[]
         detail_list = (resulttable.xpath('tr/td/a[contains(text(), "Visa detaljer")]/@href').extract())
         for detail in detail_list:
             print(detail)
-            print('entering detail')
-            yield response.follow(detail, self.get_details)
+            mail = re.search('\mail=(.*)&displayedresults',detail)
+            print(mail.group(1))
+            yield {
+            'mail' : mail.group(1)
+            }
+        #    print('entering detail')
+            # yield response.follow(detail, self.get_details)
 
         next_page = response.xpath('//*[@id="resultarea"]/p/a[contains(text(), "sta 10")]/@href').extract_first()
-        print(next_page)
+        #print(next_page)
+
         if next_page:
             yield scrapy.Request('https://www3.student.liu.se/portal/search'+next_page,
             callback=self.parse_search_page)
         else:
-            print('no next page')
-
+            print('no new page')
+            #print(self.mail_list)
 
         # for index,table_row in enumerate(resulttable.xpath('tr/td')):
         #
