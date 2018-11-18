@@ -31,11 +31,11 @@ class Studport_spider(scrapy.Spider):
             return
 
         else:
-            for zip in self.zip_codes:
-                new_url='https://www3.student.liu.se/portal/search?searchtext=%22'+zip+'%22&search=Search'
-                #print(new_url)
-                yield Request(url=new_url,
-                               callback=self.parse_search_page)
+            new_url='https://www3.student.liu.se/portal/search?searchtext=%22'+'582 14'+'%22&search=Search'
+            print(new_url)
+            #print(new_url)
+            yield Request(url=new_url,
+                           callback=self.parse_search_page)
 
 
     def parse_search_page (self,response):
@@ -43,7 +43,7 @@ class Studport_spider(scrapy.Spider):
         resulttable = response.xpath('//*[@id="resulttable"]')
         #print(resulttable.extract())
         student_list=[]
-        #print(resulttable.xpath('tr/td/a[contains(text(), "Visa detaljer")]/@href').extract())
+        print(resulttable.xpath('tr/td/a[contains(text(), "Visa detaljer")]/@href').extract())
         next_page = response.xpath('//*[@id="resultarea"]/p/a[contains(text(), "sta 10")]/@href').extract_first()
         print(next_page)
         if next_page:
