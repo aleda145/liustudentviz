@@ -7,7 +7,7 @@ cffi==1.11.5
 chardet==3.0.4
 -e git://github.com/Xion/coded4.git@9ef372763484c87af4b2ae9649146de8edd911d4#egg=coded4
 constantly==15.1.0
-cryptography==2.2.2
+cryptography==3.2
 cssselect==1.0.1
 decorator==4.2.1
 docutils==0.13.1
